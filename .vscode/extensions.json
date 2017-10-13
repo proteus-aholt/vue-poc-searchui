@@ -1,0 +1,19 @@
+{
+	// See http://go.microsoft.com/fwlink/?LinkId=827846
+	// for the documentation about the extensions.json format
+	"recommendations": [
+		// Extension identifier format: ${publisher}.${name}. Example: vscode.csharp
+		"alefragnani.project-manager",
+		"robinbentley.sass-indented",
+		"leizongmin.node-module-intellisense",
+		"eg2.vscode-npm-script",
+		"christian-kohler.npm-intellisense",
+		"christian-kohler.path-intellisense",
+		"octref.vetur",
+		"jcbuisson.vue",
+		"liuji-jim.vue",
+		"mubaidr.vuejs-extension-pack",
+        "oysun.vuehelper",
+        "gamunu.vscode-yarn"
+	]
+}
