@@ -1,21 +1,11 @@
-<template>
-  <div id="app">
-    <header>
-      <span>Vue.js PWA</span>
-    </header>
-    <main>
-      <img src="./assets/logo.png" alt="Vue.js PWA">
-      <router-view></router-view>
-    </main>
-  </div>
+<template lang="pug">
+  div#app
+    main
+      img(src="./assets/logo.png" alt="Vue.js PWA")
+      router-view
 </template>
 
 <script>
-import Vue from 'vue'
-import BootstrapVue from 'bootstrap-vue'
-
-Vue.use(BootstrapVue)
-
 export default {
   name: 'app'
 }
@@ -24,7 +14,6 @@ export default {
 <style lang="scss">
   @import '../node_modules/bootstrap/scss/bootstrap.scss';
   @import '../node_modules/bootstrap-vue/dist/bootstrap-vue.css';
-  
-  //Customize bootstrap variables here
+  @import '../node_modules/bootswatch/sandstone/_variables.scss';
+  @import '../node_modules/bootswatch/sandstone/_bootswatch.scss';
 </style>
-
