@@ -3,6 +3,5 @@ import BootstrapVue from 'bootstrap-vue'
 
 Vue.use(BootstrapVue)
 
-import SearchUI from './SearchUI'
-
-Vue.component('app-search-ui', SearchUI)
+// Import App-specific components
+import './search-ui'
