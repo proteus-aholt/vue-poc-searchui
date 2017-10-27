@@ -17,6 +17,7 @@
     "ajv": "^5.2.3",
     "bootstrap-vue": "^1.0.0-beta.9",
     "bootswatch": "^3.3.7",
+    "dexie": "^2.0.1",
     "karma-chrome-launcher": "^2.2.0",
     "node-sass": "^4.5.3",
     "pug": "^2.0.0-rc.4",

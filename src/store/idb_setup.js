@@ -1,7 +1,9 @@
-import idb from 'idb'
+import Dexie from 'dexie'
+import { CompanyStoreName } from './company'
 
-export const CompanyStoreName = 'companies'
-
-export default idb.open('vue-poc-searchui', 1, upgradeDB => {
-    upgradeDB.createObjectStore(CompanyStoreName, { keyPath: 'id' })
+const db = new Dexie('vue-poc-searchui')
+db.version(1).stores({
+    [CompanyStoreName]: '++id,name,website'
 })
+
+export default db

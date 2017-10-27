@@ -24,6 +24,7 @@ module.exports = {
     // allow debugger during development
     'no-debugger': process.env.NODE_ENV === 'production' ? 2 : 0,
     // warn if indent is not 4 spaces
-    'indent': [0, 4]
+    'indent': [0, 4],
+    'camelcase': 0
   }
 }
