@@ -1,5 +1,4 @@
-export const CompanyStoreName = 'companies'
-import db from './idb_setup'
+import async_db, { CompanyStoreName } from './idb_setup'
 
 const CompanyBaseMutations = {
     setList: 'setList',
@@ -24,7 +23,7 @@ export const CompanyActions = {
     add: `${CompanyStoreName}/${CompanyBaseActions.add}`,
     delete: `${CompanyStoreName}/${CompanyBaseActions.delete}`,
     update: `${CompanyStoreName}/${CompanyBaseActions.update}`,
-    search: `#{CompanyStoreName}/${CompanyBaseActions.search}`
+    search: `${CompanyStoreName}/${CompanyBaseActions.search}`
 }
 
 export class Company {
@@ -91,31 +90,44 @@ export default {
     // Asynchronous
     actions: {
         async [CompanyBaseActions.getDBState] (context) {
-            let ts = await db.transaction('r', db[CompanyStoreName], async () => {
-                return (await db[CompanyStoreName].toArray()).map(Company.fromJSON)
-            })
-            context.commit(CompanyBaseMutations.setList, ts)
+            context.dispatch(CompanyBaseActions.search, context.state.search_context)
         },
 
         async [CompanyBaseActions.save] (context, company) {
-            await db.transaction('rw', db[CompanyStoreName], async () => {
+            let db = await async_db
+            await db.transaction('rw', db[CompanyStoreName], async function () {
                 await db[CompanyStoreName].put(company.toJSON())
             })
             await context.dispatch(CompanyBaseActions.search, context.state.search_context)
         },
 
         async [CompanyBaseActions.search] (context, search_context) {
+            let db = await async_db
             let per_page = search_context.per_page || 10
             let current_page = search_context.current_page || 1
             let sort = search_context.sort || { column: 'name', direction: 'ASC' }
-            let constraints = search_context.constraints || {}
+            sort.column = sort.column || 'name'
+            sort.direction = sort.direction || 'ASC'
+            let constraints = search_context.constraints || []
 
-            let result = await db.transaction('r', db[CompanyStoreName], async () => {
-                let col = db[CompanyStoreName].where(constraints)
+            let companies_table = db[CompanyStoreName]
+            let result = await db.transaction('r', companies_table, async function () {
+                let col = companies_table
+                constraints.filter(c => typeof c.val !== 'undefined' && c.val.length > 0).forEach((c, idx) => {
+                    if (idx === 0) {
+                        col = col.where(c.key).startsWith(c.val)
+                    } else {
+                        col = col.and(com => {
+                            let comVal = com[c.key]
+                            if (typeof comVal === 'undefined' || comVal.length === 0) return false
+                            else return comVal.toLowerCase().startsWith(c.val.toLowerCase())
+                        })
+                    }
+                })
                 if (sort.direction === 'DESC') {
                     col = col.reverse()
                 }
-                return (await col.sortBy(sort.column).limit(per_page).offset(current_page * per_page)).map(Company.fromJSON)
+                return (await col.limit(per_page).offset(current_page * per_page).sortBy(sort.column)).map(Company.fromJSON)
             })
 
             context.commit(CompanyBaseMutations.setSearchContext, {

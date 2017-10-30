@@ -10,7 +10,8 @@
 </template>
 
 <script>
-import { CompanyStoreName, CompanyStoreActions } from '@/store/company'
+import { CompanyStoreName } from '@/store/idb_setup'
+import { CompanyActions } from '@/store/company'
 
 export default {
   name: 'company-search',
@@ -46,8 +47,19 @@ export default {
 
     async search (ctx) {
       this.is_busy = true
-      
-      await this.$store.dispatch(CompanyStoreActions.search, {})
+
+      await this.$store.dispatch(CompanyActions.search, {
+        per_page: ctx.perPage,
+        current_page: ctx.currentPage,
+        sort: {
+          column: ctx.sortBy,
+          direction: (ctx.sortDesc ? 'DESC' : 'ASC')
+        },
+        constraints: [
+          { key: 'name', val: this.constraints.name },
+          { key: 'website', val: this.constraints.website }
+        ]
+      })
 
       this.is_busy = false
       return this.$store.state[CompanyStoreName].companies

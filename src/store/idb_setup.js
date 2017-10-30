@@ -1,9 +1,11 @@
 import Dexie from 'dexie'
-import { CompanyStoreName } from './company'
 
-const db = new Dexie('vue-poc-searchui')
-db.version(1).stores({
-    [CompanyStoreName]: '++id,name,website'
-})
+export const CompanyStoreName = 'companies'
 
-export default db
+export default (async () => {
+    const db = new Dexie('vue-poc-searchui')
+    let stores = {}
+    stores[CompanyStoreName] = '++id,name,website'
+    db.version(1).stores(stores)
+    return await db.open()
+})()
