@@ -12,6 +12,7 @@
 <script>
 import { CompanyStoreName } from '@/store/idb_setup'
 import { CompanyActions } from '@/store/company'
+import { CompanyEditRoute } from '@/router'
 
 export default {
   name: 'company-search',
@@ -42,7 +43,7 @@ export default {
   },
   methods: {
     start_add () {
-      console.log('This is where I would start adding a company')
+      this.$router.push({ name: CompanyEditRoute, query: { company: 'new' } })
     },
 
     async search (ctx) {

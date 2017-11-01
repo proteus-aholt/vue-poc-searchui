@@ -2,28 +2,30 @@ import async_db, { CompanyStoreName } from './idb_setup'
 
 const CompanyBaseMutations = {
     setList: 'setList',
-    setSearchContext: 'setSearchContext'
+    setSearchContext: 'setSearchContext',
+    setSelected: 'setSelected'
 }
 
 const CompanyBaseActions = {
     getDBState: 'getDBState',
-    add: 'add',
+    save: 'save',
     delete: 'delete',
-    update: 'update',
-    search: 'search'
+    search: 'search',
+    get: 'get'
 }
 
 export const CompanyMutations = {
     setList: `${CompanyStoreName}/${CompanyBaseMutations.setList}`,
-    setSearchContext: `${CompanyStoreName}/${CompanyBaseMutations.setSearchContext}`
+    setSearchContext: `${CompanyStoreName}/${CompanyBaseMutations.setSearchContext}`,
+    setSelected: `${CompanyStoreName}/${CompanyBaseMutations.setSelected}`
 }
 
 export const CompanyActions = {
     getDBState: `${CompanyStoreName}/${CompanyBaseActions.getDBState}`,
-    add: `${CompanyStoreName}/${CompanyBaseActions.add}`,
+    save: `${CompanyStoreName}/${CompanyBaseActions.save}`,
     delete: `${CompanyStoreName}/${CompanyBaseActions.delete}`,
-    update: `${CompanyStoreName}/${CompanyBaseActions.update}`,
-    search: `${CompanyStoreName}/${CompanyBaseActions.search}`
+    search: `${CompanyStoreName}/${CompanyBaseActions.search}`,
+    get: `${CompanyStoreName}/${CompanyBaseActions.get}`
 }
 
 export class Company {
@@ -68,7 +70,10 @@ export class Company {
     }
 
     static fromJSON (obj) {
-        return new Company(obj.name, obj.website, obj.id)
+        if (typeof obj === 'undefined' || !obj) {
+            obj = {}
+        }
+        return new Company(obj.name || '', obj.website || '', obj.id)
     }
 }
 
@@ -76,7 +81,8 @@ export default {
     namespaced: true,
     state: {
         companies: [],
-        search_context: {}
+        search_context: {},
+        company: new Company()
     },
     // Synchronous
     mutations: {
@@ -85,6 +91,9 @@ export default {
         },
         [CompanyBaseMutations.setSearchContext] (state, search_context) {
             state.search_context = search_context
+        },
+        [CompanyBaseMutations.setSelected] (state, company) {
+            state.company = company
         }
     },
     // Asynchronous
@@ -99,6 +108,14 @@ export default {
                 await db[CompanyStoreName].put(company.toJSON())
             })
             await context.dispatch(CompanyBaseActions.search, context.state.search_context)
+        },
+
+        async [CompanyBaseActions.get] (context, id) {
+            let db = await async_db
+            let result = await db.transaction('r', db[CompanyStoreName], async function () {
+                return Company.fromJSON(await db[CompanyStoreName].where('id').equals(id).first())
+            })
+            context.commit(CompanyBaseMutations.setSelected, result)
         },
 
         async [CompanyBaseActions.search] (context, search_context) {
