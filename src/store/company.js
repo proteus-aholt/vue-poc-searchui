@@ -1,4 +1,7 @@
-import async_db, { CompanyStoreName } from './idb_setup'
+import async_db from './idb_setup'
+import { ulid } from 'ulid'
+
+export const CompanyStoreName = 'companies'
 
 const CompanyBaseMutations = {
     setList: 'setList',
@@ -63,9 +66,9 @@ export class Company {
 
     toJSON () {
         return {
-            id: this._id,
-            name: this._name,
-            website: this._website
+            id: this.id || ulid(),
+            name: this.name,
+            website: this.website
         }
     }
 
@@ -93,7 +96,7 @@ export default {
             state.search_context = search_context
         },
         [CompanyBaseMutations.setSelected] (state, company) {
-            state.company = company
+            state.company = Company.fromJSON(company)
         }
     },
     // Asynchronous
@@ -104,16 +107,16 @@ export default {
 
         async [CompanyBaseActions.save] (context, company) {
             let db = await async_db
-            await db.transaction('rw', db[CompanyStoreName], async function () {
-                await db[CompanyStoreName].put(company.toJSON())
+            await db.transaction('rw', db.companies, async function () {
+                await db.companies.put(Company.fromJSON(company).toJSON())
             })
             await context.dispatch(CompanyBaseActions.search, context.state.search_context)
         },
 
         async [CompanyBaseActions.get] (context, id) {
             let db = await async_db
-            let result = await db.transaction('r', db[CompanyStoreName], async function () {
-                return Company.fromJSON(await db[CompanyStoreName].where('id').equals(id).first())
+            let result = await db.transaction('r', db.companies, async function () {
+                return Company.fromJSON(await db.companies.where('id').equals(id).first())
             })
             context.commit(CompanyBaseMutations.setSelected, result)
         },
@@ -121,16 +124,17 @@ export default {
         async [CompanyBaseActions.search] (context, search_context) {
             let db = await async_db
             let per_page = search_context.per_page || 10
-            let current_page = search_context.current_page || 1
+            let current_page = (search_context.current_page || 1) - 1
             let sort = search_context.sort || { column: 'name', direction: 'ASC' }
             sort.column = sort.column || 'name'
             sort.direction = sort.direction || 'ASC'
             let constraints = search_context.constraints || []
 
-            let companies_table = db[CompanyStoreName]
-            let result = await db.transaction('r', companies_table, async function () {
-                let col = companies_table
+            let result = await db.transaction('r', db.companies, async function () {
+                let col = db.companies
                 constraints.filter(c => typeof c.val !== 'undefined' && c.val.length > 0).forEach((c, idx) => {
+                    // console.log('filtering search...')
+                    // console.log(c)
                     if (idx === 0) {
                         col = col.where(c.key).startsWith(c.val)
                     } else {
@@ -146,7 +150,15 @@ export default {
                 }
                 return (await col.limit(per_page).offset(current_page * per_page).sortBy(sort.column)).map(Company.fromJSON)
             })
-
+            // console.log('search context committing...')
+            // console.log({
+            //     per_page: per_page,
+            //     current_page: current_page,
+            //     sort: sort,
+            //     constraints: constraints
+            // })
+            // console.log('results gathered...')
+            // console.log(result)
             context.commit(CompanyBaseMutations.setSearchContext, {
                 per_page: per_page,
                 current_page: current_page,

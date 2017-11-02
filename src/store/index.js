@@ -1,8 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 
-import { CompanyStoreName } from './idb_setup'
-import CompanyModule from './company'
+import CompanyModule, { CompanyStoreName } from './company'
 
 Vue.use(Vuex)
 

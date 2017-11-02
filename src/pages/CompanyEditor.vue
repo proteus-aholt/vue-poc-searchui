@@ -2,10 +2,10 @@
   section.company-editor
     div.prop.name
         label(for="name-input") Name
-        input#name-input(v-model="name" type="text")
+        input#name-input(:value="company.name" @input="evt => name = evt.target.value" type="text")
     div.prop.website
         label(for="website-input") Website
-        input#website-input(v-model="website" type="text")
+        input#website-input(:value="company.website" @input="evt => website = evt.target.value" type="text")
     div.actions
         button(type="button" @click="save") Save
         button(type="button" @click="cancel") Cancel
@@ -13,8 +13,7 @@
 
 
 <script>
-import { CompanyStoreName } from '@/store/idb_setup'
-import { CompanyActions } from '@/store/company'
+import { CompanyActions, CompanyStoreName } from '@/store/company'
 import { CompanySearchRoute } from '@/router'
 
 export default {
@@ -28,8 +27,8 @@ export default {
   computed: {
       company () {
           let company = this.$store.state[CompanyStoreName].company
-          this.name = company.name || ''
-          this.website = company.website || ''
+          company.name = company.name || ''
+          company.website = company.website || ''
           return company
       }
   },
@@ -41,6 +40,8 @@ export default {
           let company = this.company
           company.name = this.name
           company.website = this.website
+          console.log('inserting company...')
+          console.log(company)
           await this.$store.dispatch(CompanyActions.save, company)
           this.$router.push({ name: CompanySearchRoute })
       }

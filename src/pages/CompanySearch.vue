@@ -10,8 +10,7 @@
 </template>
 
 <script>
-import { CompanyStoreName } from '@/store/idb_setup'
-import { CompanyActions } from '@/store/company'
+import { CompanyActions, CompanyStoreName } from '@/store/company'
 import { CompanyEditRoute } from '@/router'
 
 export default {
