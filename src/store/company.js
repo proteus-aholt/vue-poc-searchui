@@ -38,6 +38,12 @@ export class Company {
         }
         this._name = name
         this._website = website
+
+        return {
+            id: this.id || ulid(),
+            name: this.name,
+            website: this.website
+        }
     }
 
     get id () {
@@ -62,14 +68,6 @@ export class Company {
 
     set website (website) {
         this._website = website
-    }
-
-    toJSON () {
-        return {
-            id: this.id || ulid(),
-            name: this.name,
-            website: this.website
-        }
     }
 
     static fromJSON (obj) {
@@ -108,7 +106,7 @@ export default {
         async [CompanyBaseActions.save] (context, company) {
             let db = await async_db
             await db.transaction('rw', db.companies, async function () {
-                await db.companies.put(Company.fromJSON(company).toJSON())
+                await db.companies.put(Company.fromJSON(company))
             })
             await context.dispatch(CompanyBaseActions.search, context.state.search_context)
         },
@@ -132,33 +130,17 @@ export default {
 
             let result = await db.transaction('r', db.companies, async function () {
                 let col = db.companies
-                constraints.filter(c => typeof c.val !== 'undefined' && c.val.length > 0).forEach((c, idx) => {
-                    // console.log('filtering search...')
-                    // console.log(c)
-                    if (idx === 0) {
-                        col = col.where(c.key).startsWith(c.val)
-                    } else {
-                        col = col.and(com => {
-                            let comVal = com[c.key]
-                            if (typeof comVal === 'undefined' || comVal.length === 0) return false
-                            else return comVal.toLowerCase().startsWith(c.val.toLowerCase())
-                        })
-                    }
-                })
                 if (sort.direction === 'DESC') {
                     col = col.reverse()
                 }
                 return (await col.limit(per_page).offset(current_page * per_page).sortBy(sort.column)).map(Company.fromJSON)
             })
-            // console.log('search context committing...')
-            // console.log({
-            //     per_page: per_page,
-            //     current_page: current_page,
-            //     sort: sort,
-            //     constraints: constraints
-            // })
-            // console.log('results gathered...')
-            // console.log(result)
+            constraints
+                .filter(constraint => !!constraint.key)
+                .filter(constraint => typeof constraint.val !== 'undefined' && constraint.val !== '')
+                .forEach(constraint => {
+                    result = result.filter(company => constraint.val.toLowerCase().startsWith(company[constraint.key]))
+                })
             context.commit(CompanyBaseMutations.setSearchContext, {
                 per_page: per_page,
                 current_page: current_page,

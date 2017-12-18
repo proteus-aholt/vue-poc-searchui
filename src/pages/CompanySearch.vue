@@ -1,26 +1,26 @@
 <template lang="pug">
   section.company-management
     h1 Companies
-    app-search-ui(:search="search" search_name="company-search" :search_opts="search_opts")
-      app-entity-action(slot="entity-actions" name="add" label="Add" :on_click="start_add")
-      app-search-constraint(slot="constraints" name="name" label="Name" placeholder="Search by Name" v-model="constraints.name")
-      app-search-constraint(slot="constraints" name="website" label="Website" placeholder="Search by Website" v-model="constraints.website")
-      app-search-action(slot="search-actions" name="search" label="Search" :on_click="search")
-      app-search-action(slot="search-actions" name="reset" label="Reset" :on_click="reset")
+    app-search-ui(ref="table" :search="search" search_name="company-search" :search_opts="search_opts")
+      app-entity-action(name="add" label="Add" :on_click="start_add")
+      viwt-searchui-constraints(:constraints="constraints")
+      app-search-action(name="search" label="Search" :on_click="triggerSearch")
+      app-search-action(name="reset" label="Reset" :on_click="reset")
 </template>
 
 <script>
 import { CompanyActions, CompanyStoreName } from '@/store/company'
 import { CompanyEditRoute } from '@/router'
+import { ColumnDefinition, ConstraintDefinition } from '@/components/search-ui'
 
 export default {
   name: 'company-search',
   data () {
     return {
-      constraints: {
-        name: '',
-        website: ''
-      },
+      constraints: [
+        new ConstraintDefinition('name', 'Name', '', 'Filter by Name'),
+        new ConstraintDefinition('website', 'Website', '', 'Filter by Website')
+      ],
       search_control: {
         is_busy: false,
         per_page: 10,
@@ -34,7 +34,10 @@ export default {
       return {
         is_busy: this.search_control.is_busy,
         search: this.search,
-        columns: [],
+        columns: [
+          new ColumnDefinition('name', 'Name', true),
+          new ColumnDefinition('website', 'Website', true)
+        ],
         per_page: this.search_control.per_page,
         current_page: this.search_control.current_page
       }
@@ -43,6 +46,14 @@ export default {
   methods: {
     start_add () {
       this.$router.push({ name: CompanyEditRoute, query: { company: 'new' } })
+    },
+
+    triggerSearch () {
+      return this.$refs.table.triggerSearch()
+    },
+
+    reset () {
+      this.$refs.table.reset()
     },
 
     async search (ctx) {
@@ -55,19 +66,11 @@ export default {
           column: ctx.sortBy,
           direction: (ctx.sortDesc ? 'DESC' : 'ASC')
         },
-        constraints: [
-          { key: 'name', val: this.constraints.name },
-          { key: 'website', val: this.constraints.website }
-        ]
+        constraints: this.constraints
       })
 
       this.is_busy = false
       return this.$store.state[CompanyStoreName].companies
-    },
-
-    reset () {
-      this.constraints.name = ''
-      this.constraints.website = ''
     }
   }
 }
