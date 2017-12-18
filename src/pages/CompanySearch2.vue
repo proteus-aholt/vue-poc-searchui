@@ -1,5 +1,5 @@
 <template lang="pug">
-    section.company-management
+    section.miwt.company-management
         h1.page-header Companies
         div.search-wrapper.company-search
             div.search
@@ -28,14 +28,16 @@
                                             span.column-label
                                                 a(href="#" title="Sort by Name" @click="toSort('name')")
                                                     span Name
-                                                span.sort-indicator(v-if="sort.col === 'name'" v-bind:class="{'ascending': sort.dir === 'ASC', 'descending': sort.dir === 'DESC'}")
-                                                    i.fa(v-bind:class="{'fa-chevron-down': sort.dir === 'ASC', 'fa-chevron-up': sort.dir === 'DESC'}")
+                                                span.sort-indicator(v-bind:class="{'ascending': sort.dir === 'ASC', 'descending': sort.dir === 'DESC'}")
+                                                    i.fa(v-if="sort.col !== 'name'") &nbsp;
+                                                    i.fa(v-if="sort.col === 'name'" v-bind:class="{'fa-chevron-down': sort.dir === 'ASC', 'fa-chevron-up': sort.dir === 'DESC'}")
                                         th.last-column
                                             span.column-label
                                                 a(href="#" title="Sort by Website" @click="toSort('website')")
                                                     span Website
-                                                span.sort-indicator(v-if="sort.col === 'website'" v-bind:class="{'ascending': sort.dir === 'ASC', 'descending': sort.dir === 'DESC'}")
-                                                    i.fa(v-bind:class="{'fa-chevron-down': sort.dir === 'ASC', 'fa-chevron-up': sort.dir === 'DESC'}")
+                                                span.sort-indicator(v-bind:class="{'ascending': sort.dir === 'ASC', 'descending': sort.dir === 'DESC'}")
+                                                    i.fa(v-if="sort.col !== 'website'") &nbsp;
+                                                    i.fa(v-if="sort.col === 'website'" v-bind:class="{'fa-chevron-down': sort.dir === 'ASC', 'fa-chevron-up': sort.dir === 'DESC'}")
                                 tbody.miwt-table-data
                                     tr(v-for="(company, i) in companies" v-bind:class="{'even': i % 2 === 0, 'odd': i % 2 !== 0, 'first': i === 0, 'last': i === companies.length - 1}")
                                         td.action-column.first-column
@@ -163,3 +165,6 @@ export default {
 }
 </script>
 
+<style lang="scss">
+@import '../stylesheets/templates/template--base.scss';
+</style>

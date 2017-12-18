@@ -1,5 +1,5 @@
 <template lang="pug">
-  section.company-editor
+  section.miwt.company-editor
     div.prop.name
         label(for="name-input") Name
         input#name-input(:value="company.name" @input="evt => name = evt.target.value" type="text")
@@ -52,3 +52,7 @@ export default {
   }
 }
 </script>
+
+<style lang="scss">
+@import '../stylesheets/templates/template--base.scss';
+</style>

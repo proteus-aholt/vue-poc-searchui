@@ -1,8 +1,9 @@
 <template lang="pug">
-  div#app
-    main
-      img(src="./assets/logo.png" alt="Vue.js PWA")
-      router-view
+  div.page#app
+    div.enclosing#e-content
+      div.enclosing#body-wrapper
+        main.main-content#body(role="main")
+          router-view
 </template>
 
 <script>
@@ -12,6 +13,5 @@ export default {
 </script>
 
 <style lang="scss">
-  @import '../node_modules/bootstrap/scss/bootstrap.scss';
-  @import '../node_modules/bootstrap-vue/dist/bootstrap-vue.css';
+  @import './stylesheets/config/_base-import.scss';
 </style>
