@@ -4,7 +4,7 @@
         div.search-wrapper.company-search
             div.search
                 div.actions.entity-actions
-                    button.btn.add(title="Add" @click="startAdd") Add
+                    button.btn.add(title="Add" @click="add") Add
                 div.search-bar
                     span.constraints
                         span.constraint
@@ -42,7 +42,7 @@
                                     tr(v-for="(company, i) in companies" v-bind:class="{'even': i % 2 === 0, 'odd': i % 2 !== 0, 'first': i === 0, 'last': i === companies.length - 1}")
                                         td.action-column.first-column
                                             div.actions
-                                                button.btn.edit(type="button" @click="startEdit(company)") Edit
+                                                button.btn.edit(type="button" @click="view(company)") View
                                         td {{ company.name }}
                                         td.last-column {{ company.website }}
                     div.pager-bottom(v-if="pager.pageCount > 1")
@@ -68,7 +68,7 @@
 
 <script>
 import { CompanyActions, CompanyStoreName } from '@/store/company'
-import { CompanyEditRoute } from '@/router'
+import { CompanyViewRoute, CompanyEditRoute } from '@/router'
 
 export default {
     name: 'company-search2',
@@ -106,12 +106,12 @@ export default {
             return arr
         },
 
-        startAdd () {
+        add () {
             this.$router.push({ name: CompanyEditRoute, query: { company: 'new' } })
         },
 
-        startEdit (company) {
-            this.$router.push({ name: CompanyEditRoute, query: { company: company.id } })
+        view (company) {
+            this.$router.push({ name: CompanyViewRoute, query: { company: company.id } })
         },
 
         async toPage (page) {
