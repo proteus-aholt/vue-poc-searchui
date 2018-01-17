@@ -4,7 +4,6 @@ import 'font-awesome-sass-loader'
 import Vue from 'vue'
 import App from './App'
 import router from './router'
-import './components'
 import store from './store'
 
 window.$ = window.jQuery = require('jquery')

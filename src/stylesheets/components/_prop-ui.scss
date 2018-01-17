@@ -171,7 +171,7 @@ input[type=number]{
 		flex-flow: column nowrap;
 
 		@include media-breakpoint-up(md) {
-			flex-flow: row nowrap;
+			flex-flow: column nowrap;
 		}
 	}
 }

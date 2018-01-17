@@ -5,6 +5,7 @@ export const CompanyStoreName = 'companies'
 
 const CompanyBaseMutations = {
     setList: 'setList',
+    setTotalCount: 'setTotalCount',
     setSearchContext: 'setSearchContext',
     setSelected: 'setSelected'
 }
@@ -19,6 +20,7 @@ const CompanyBaseActions = {
 
 export const CompanyMutations = {
     setList: `${CompanyStoreName}/${CompanyBaseMutations.setList}`,
+    setTotalCount: `${CompanyStoreName}/${CompanyBaseMutations.setTotalCount}`,
     setSearchContext: `${CompanyStoreName}/${CompanyBaseMutations.setSearchContext}`,
     setSelected: `${CompanyStoreName}/${CompanyBaseMutations.setSelected}`
 }
@@ -32,18 +34,15 @@ export const CompanyActions = {
 }
 
 export class Company {
-    constructor (name, website, id) {
+    constructor (id) {
         if (typeof id !== 'undefined') {
             this._id = id
+        } else {
+            this._id = null
         }
-        this._name = name
-        this._website = website
 
-        return {
-            id: this.id || ulid(),
-            name: this.name,
-            website: this.website
-        }
+        this._name = ''
+        this._website = ''
     }
 
     get id () {
@@ -70,11 +69,31 @@ export class Company {
         this._website = website
     }
 
+    with (func) {
+        return func(this)
+    }
+
+    isTransient () {
+        return this.id === null
+    }
+
+    toJSON () {
+        return {
+            id: this.id || ulid(),
+            name: this.name || '',
+            website: this.website || ''
+        }
+    }
+
     static fromJSON (obj) {
         if (typeof obj === 'undefined' || !obj) {
             obj = {}
         }
-        return new Company(obj.name || '', obj.website || '', obj.id)
+        return new Company(obj.id).with(it => {
+            it.name = obj.name || ''
+            it.website = obj.website || ''
+            return it
+        })
     }
 }
 
@@ -82,6 +101,7 @@ export default {
     namespaced: true,
     state: {
         companies: [],
+        total: 0,
         search_context: {},
         company: new Company()
     },
@@ -89,6 +109,9 @@ export default {
     mutations: {
         [CompanyBaseMutations.setList] (state, list) {
             state.companies = list
+        },
+        [CompanyBaseMutations.setTotalCount] (state, count) {
+            state.total = count
         },
         [CompanyBaseMutations.setSearchContext] (state, search_context) {
             state.search_context = search_context
@@ -106,7 +129,7 @@ export default {
         async [CompanyBaseActions.save] (context, company) {
             let db = await async_db
             await db.transaction('rw', db.companies, async function () {
-                await db.companies.put(Company.fromJSON(company))
+                await db.companies.put(company.toJSON())
             })
             await context.dispatch(CompanyBaseActions.search, context.state.search_context)
         },
@@ -114,7 +137,7 @@ export default {
         async [CompanyBaseActions.get] (context, id) {
             let db = await async_db
             let result = await db.transaction('r', db.companies, async function () {
-                return Company.fromJSON(await db.companies.where('id').equals(id).first())
+                return await db.companies.where('id').equals(id).first()
             })
             context.commit(CompanyBaseMutations.setSelected, result)
         },
@@ -129,11 +152,11 @@ export default {
             let constraints = search_context.constraints || []
 
             let result = await db.transaction('r', db.companies, async function () {
-                let col = db.companies
+                let col = db.companies.toCollection()
                 if (sort.direction === 'DESC') {
                     col = col.reverse()
                 }
-                return (await col.limit(per_page).offset(current_page * per_page).sortBy(sort.column)).map(Company.fromJSON)
+                return (await col.sortBy(sort.column)).map(Company.fromJSON)
             })
             constraints
                 .filter(constraint => !!constraint.key)
@@ -141,6 +164,9 @@ export default {
                 .forEach(constraint => {
                     result = result.filter(company => constraint.val.toLowerCase().startsWith(company[constraint.key]))
                 })
+            let total = result.length
+            let offset = (per_page * current_page)
+            result = result.slice(offset, offset + per_page)
             context.commit(CompanyBaseMutations.setSearchContext, {
                 per_page: per_page,
                 current_page: current_page,
@@ -148,6 +174,7 @@ export default {
                 constraints: constraints
             })
             context.commit(CompanyBaseMutations.setList, result)
+            context.commit(CompanyBaseMutations.setTotalCount, total)
         }
     }
 }

@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import CompanySearch from '@/pages/CompanySearch2'
+import CompanySearch from '@/pages/CompanySearch'
 import CompanyEditor from '@/pages/CompanyEditor'
 import CompanyViewer from '@/pages/CompanyViewer'
 
